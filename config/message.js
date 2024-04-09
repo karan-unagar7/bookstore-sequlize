@@ -17,7 +17,7 @@ const message = {
         tokenNotGenreted:"Token Not Genereted",
         badRequest:"Bad  Request",
         userUnauthorize:"Unauthorize User",
-        allFeildRequired:'All Field  are Required'
+        allFieldRequired:'All Field  are Required'
     }
 }
 

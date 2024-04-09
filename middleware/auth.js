@@ -1,7 +1,7 @@
 const { verifyToken } = require("../utility/token");
 const message = require("../config/message");
-const db = require("../model/index");
-const User = db.users;
+const db = require("../conn");
+const User = db.user;
 
 const { error } = message;
 const verifyUser = async (req, res, next) => {
@@ -11,7 +11,7 @@ const verifyUser = async (req, res, next) => {
     if (!token) {
       return res.status(404).json({
         success: false,
-        message: error.tokenNotGenreted,
+        message: error.tokenNotGenreted, // correct speling mistake
       });
     }
 

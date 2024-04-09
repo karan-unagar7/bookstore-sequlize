@@ -1,8 +1,8 @@
-const db = require("../model/index");
+const db = require("../conn");
 const message = require("../config/message");
 
 const { user, error } = message;
-const User = db.users;
+const User = db.user;
 
 const { generateToken } = require("../utility/token");
 
@@ -16,14 +16,14 @@ const signUp = async (req, res) => {
         .json({ success: false, message: error.allFeildRequired });
     }
 
-    const userDeatil = await User.findOne({ where: { email } });
-    if (userDeatil) {
+    const userDetail = await User.findOne({ where: { email } });
+    if (userDetail) {
       return res
         .status(409)
         .json({ success: false, message: error.userAlreadyExicts });
     }
 
-    const newUser = await User.create({ name, email, password, gender });
+    await User.create({ name, email, password, gender });
 
     return res.status(201).json({ success: true, message: user.signUp });
   } catch (error) {
@@ -34,10 +34,10 @@ const signUp = async (req, res) => {
 const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if ((email && password) === undefined) {
-      return res
+    if ((email || password) === undefined) {
+      return res            
         .status(400)
-        .json({ success: false, message: error.allFeildRequired });
+        .json({ success: false, message: error.allFieldRequired });
     }
     const userDetail = await User.findOne({ where: { email } });
     if (!userDetail) {
@@ -46,9 +46,9 @@ const signIn = async (req, res) => {
         .json({ success: false, message: error.userNotfound });
     }
 
-    const matchPass = await userDetail.checkPassword(password);
+    const isMatchPass = await userDetail.checkPassword(password);
 
-    if (!matchPass) {
+    if (!isMatchPass) {
       return res
         .status(401)
         .json({ success: false, message: error.wrongPassword });
@@ -57,7 +57,7 @@ const signIn = async (req, res) => {
     const token = generateToken({ id: userDetail.id });
     return res
       .status(200)
-      .json({ success: true, Token: token, message: user.signIn });
+      .json({ success: true, token: token, message: user.signIn });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

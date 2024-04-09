@@ -1,7 +1,7 @@
 const express =require('express');
 const {PORT}=require('./config/config')
 const router = require('./router/index')
-require('./model/index')
+require('./conn')
 const app = express();
 
 
