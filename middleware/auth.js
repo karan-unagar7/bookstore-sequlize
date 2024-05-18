@@ -11,7 +11,7 @@ const verifyUser = async (req, res, next) => {
     if (!token) {
       return res.status(404).json({
         success: false,
-        message: error.tokenNotGenreted, // correct speling mistake
+        message: error.tokenNotGenreted, 
       });
     }
 

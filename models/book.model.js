@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      no_of_page: {
+      no_of_pages: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   Book.associate = (models) => {
-    Book.belongsTo(models.user, { foreignKey: "userId" });
+    Book.belongsTo(models.user, { foreignKey: "userId" , onDelete: 'CASCADE'});
   };
 
   return Book;

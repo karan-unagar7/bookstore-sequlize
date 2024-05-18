@@ -1,18 +1,18 @@
 const db = require("../conn");
 const message = require("../config/message");
-const { where } = require("sequelize");
+const { where, Op } = require("sequelize");
 
 const { book, error } = message;
 const Book = db.book;
 const User = db.user;
 
-const addBook = async (req, res) => {
+const add = async (req, res) => {
   try {
     const user = req.user;
     const {
       name,
       description,
-      no_of_page,
+      no_of_pages,
       author,
       category,
       price,
@@ -22,7 +22,7 @@ const addBook = async (req, res) => {
     if (
       (name ||
         description ||
-        no_of_page ||
+        no_of_pages ||
         author ||
         category ||
         price ||
@@ -35,7 +35,7 @@ const addBook = async (req, res) => {
     await Book.create({
       name,
       description,
-      no_of_page,
+      no_of_pages,
       author,
       category,
       price,
@@ -48,10 +48,29 @@ const addBook = async (req, res) => {
   }
 };
 
-const getAllBook = async (req, res) => {
+const getAll = async (req, res) => {
   try {
     const { id } = req.user;
-    const bookList=await Book.findAll({include: [{ model: User,attributes:['id','name','email']}],attributes:['id','name','description','author','price'],where:{ userId: id}});
+    // const { page, limit } = req.query;
+    // const pageCount = Number(page) || 1;
+    // const limitDoc = Number(limit) || 5;
+    // const totalBooks = await Book.count({ where: { userId: id } });
+    // const maxPage =
+    //   totalBooks <= limitDoc ? 1 : Math.ceil(totalBooks / limitDoc);
+
+    // if (pageCount > maxPage) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: `There are only ${maxPage} page.` });
+    // }
+
+    // const skip = (pageCount - 1) * limitDoc;
+    const bookList = await Book.findAll({
+      include: [{ model: User, attributes: ["id", "name", "email"] }],
+      where: { userId: id },
+      // offset: skip,
+      // limit: limitDoc,
+    });
     if (!bookList) {
       return res.status(404).json({ message: book.bookNotFound });
     }
@@ -61,12 +80,41 @@ const getAllBook = async (req, res) => {
   }
 };
 
-const getOneBook = async (req, res) => {
+// const getOne = async (req, res) => {
+//   try {
+//     const { id } = req.user;
+//     const _id = req.params.id;
+
+//     const bookDetail = await Book.findOne({
+//       where: { userId: id, id: _id },
+//     });
+//     if (!bookDetail) {
+//       return res.status(404).json({ message: book.bookNotFound });
+//     }
+//     return res.status(200).json({ Book: bookDetail });
+//   } catch (error) {
+//     return res.status(500).json({ error: error.message });
+//   }
+// };
+
+const getOne = async (req, res) => {
   try {
     const { id } = req.user;
-    const _id = req.params.id;
+    const { bookName, authorName } = req.query;
+
+    const whereCondition = {userId:id};
+
+    if (bookName && !authorName) {
+      whereCondition.name = { [Op.like]: `%${bookName}%` };
+    }
+    else if (bookName && authorName) {
+      whereCondition.name = { [Op.like]: `%${bookName}%` };
+      whereCondition.author = { [Op.like]: `%${authorName}%` };
+    }
+
+    console.log(whereCondition);
     const bookDetail = await Book.findOne({
-      where: { userId: id, id: _id },
+      where: whereCondition,
     });
     if (!bookDetail) {
       return res.status(404).json({ message: book.bookNotFound });
@@ -77,7 +125,7 @@ const getOneBook = async (req, res) => {
   }
 };
 
-const updateBook = async (req, res) => {
+const update = async (req, res) => {
   try {
     const { id } = req.user;
     const _id = req.params.id;
@@ -114,7 +162,7 @@ const updateBook = async (req, res) => {
   }
 };
 
-const deleteBook = async (req, res) => {
+const deletee = async (req, res) => {
   try {
     const { id } = req.user;
     const _id = req.params.id;
@@ -129,4 +177,4 @@ const deleteBook = async (req, res) => {
   }
 };
 
-module.exports = { addBook, getAllBook, getOneBook, updateBook, deleteBook };
+module.exports = { add, getAll, getOne, update, deletee };

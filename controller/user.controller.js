@@ -8,12 +8,13 @@ const { generateToken } = require("../utility/token");
 
 const signUp = async (req, res) => {
   try {
-    const { name, email, password, gender } = req.body;
+    const { name, email, password, gender,interests} = req.body;
+   
 
-    if ((name && email && password && gender) === undefined) {
+    if ((name && email && password && gender,interests) === undefined) {
       return res
         .status(400)
-        .json({ success: false, message: error.allFeildRequired });
+        .json({ success: false, message: error.allFieldRequired });
     }
 
     const userDetail = await User.findOne({ where: { email } });
@@ -23,7 +24,7 @@ const signUp = async (req, res) => {
         .json({ success: false, message: error.userAlreadyExicts });
     }
 
-    await User.create({ name, email, password, gender });
+    await User.create({ name, email, password, gender,interests });
 
     return res.status(201).json({ success: true, message: user.signUp });
   } catch (error) {
@@ -33,6 +34,7 @@ const signUp = async (req, res) => {
 
 const signIn = async (req, res) => {
   try {
+    
     const { email, password } = req.body;
     if ((email || password) === undefined) {
       return res            
@@ -72,4 +74,13 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { signUp, signIn, getUser };
+const deleteUser = async(req,res)=>{
+  try {
+        const {id}=req.user;
+        await User.destroy({where:{id}})
+        return res.status(200).json({success:true,data:"Delete Successfully"})
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+}
+module.exports = { signUp, signIn, getUser,deleteUser };

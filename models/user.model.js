@@ -1,7 +1,6 @@
 const bcrypt= require('bcryptjs')
 module.exports = (sequelize, DataTypes) => {
-  
-  const User = sequelize.define(
+const User = sequelize.define(
     "user",
     {
       name: {
@@ -21,10 +20,16 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM("male", "female"),
         allowNull: false,
       },
-      interest: {
-        type: DataTypes.JSON, 
-        defaultValue: JSON.stringify([]),
+      interests: {
+        type: DataTypes.STRING, 
         allowNull: false,
+        get() {
+          const value = this.getDataValue("interests");
+          return value ? value.split(",") : [];
+        },
+        set(value) {
+          this.setDataValue("interests", value.join(","));
+        },
       },
       image: {
         type: DataTypes.STRING,
@@ -52,12 +57,11 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   User.associate = (models) => {
-    User.hasMany(models.book, { foreignKey: "userId" });
+    User.hasMany(models.book, { foreignKey: "userId"});
   };
 
   User.prototype.checkPassword = async function (inputPassword) {
     return await bcrypt.compare(inputPassword, this.password);
   };
-  
   return User;
 };

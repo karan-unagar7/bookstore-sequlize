@@ -1,15 +1,13 @@
 const { Router } = require("express");
-const {addBook,getAllBook,getOneBook,updateBook,deleteBook}=require('../controller/book.controller')
+const {add,getAll,getOne,update,deletee}=require('../controller/book.controller')
 
 const router = Router();
 
-router.post("/add-book" ,addBook)
-router.get('/getall-book' ,getAllBook)
-router.get('/getone-book/:id' ,getOneBook)
-router.put('/update-book/:id' ,updateBook)
-router.delete('/delete-book/:id' ,deleteBook)
-
-
-
+router.post("/add" ,add)
+router.get('/getall' ,getAll)
+// router.get('/getone/:id' ,getOne)
+router.get('/getone' ,getOne)
+router.put('/update/:id' ,update)
+router.delete('/delete/:id' ,deletee)
 
 module.exports = router;
