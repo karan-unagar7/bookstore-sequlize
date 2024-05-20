@@ -79,7 +79,7 @@ const getAll = async (req, res) => {
     }
 
     if (sort) {
-       if (sort == "name") {
+      if (sort == "name") {
         orderCondition = ["name", orderType];
       } else if (sort == "author") {
         orderCondition = ["author", orderType];
@@ -136,7 +136,6 @@ const getAll = async (req, res) => {
     const totalBooks = await Book.count({ where: whereCondition });
     const maxPage =
       totalBooks <= limitDoc ? 1 : Math.ceil(totalBooks / limitDoc);
-
     if (pageCount > maxPage) {
       return res
         .status(400)
@@ -147,16 +146,18 @@ const getAll = async (req, res) => {
     const bookList = await Book.findAll({
       include: [{ model: User, attributes: ["id", "name", "email"] }],
       where: whereCondition,
-      order:[orderCondition],
+      order: [orderCondition],
       offset: skip,
       limit: limitDoc,
     });
     if (bookList.length === 0) {
       return res.status(404).json({ message: book.bookNotFound });
     }
-    return res
-      .status(200)
-      .json({ AllBook: bookList, totalBooks,message: "All Books Fetched Successfully" });
+    return res.status(200).json({
+      AllBook: bookList,
+      totalBooks,
+      message: "All Books Fetched Successfully",
+    });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -211,7 +212,7 @@ const update = async (req, res) => {
     const {
       name,
       description,
-      no_of_page,
+      no_of_pages,
       author,
       category,
       price,
@@ -222,7 +223,7 @@ const update = async (req, res) => {
       {
         name,
         description,
-        no_of_page,
+        no_of_pages,
         author,
         category,
         price,
@@ -265,7 +266,7 @@ const deletee = async (req, res) => {
     }
     console.log(whereCondition);
     const deleteBook = await Book.destroy({ where: whereCondition });
-    if (!deleteBook) {
+    if (deleteBook) {
       return res.status(404).json({ message: book.bookNotFound });
     }
     return res.status(200).json({ message: book.deleteBook });
