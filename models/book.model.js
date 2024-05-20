@@ -5,10 +5,23 @@ module.exports = (sequelize, DataTypes) => {
       name: {
         type: DataTypes.STRING,
         allowNull: false,
+
+        get() {
+          const value = this.getDataValue("name");
+          return value
+            ? value.replace(/\b\w/g, (char) => char.toUpperCase())
+            : value;
+        },
       },
       description: {
         type: DataTypes.STRING,
         allowNull: false,
+        get() {
+          const value = this.getDataValue("description");
+          return value
+            ? value.replace(/\b\w/g, (char) => char.toUpperCase())
+            : value;
+        },
       },
       no_of_pages: {
         type: DataTypes.INTEGER,
@@ -17,10 +30,22 @@ module.exports = (sequelize, DataTypes) => {
       author: {
         type: DataTypes.STRING,
         allowNull: false,
+        get() {
+          const value = this.getDataValue("author");
+          return value
+            ? value.replace(/\b\w/g, (char) => char.toUpperCase())
+            : value;
+        },
       },
       category: {
         type: DataTypes.STRING,
         allowNull: false,
+        get() {
+          const value = this.getDataValue("category");
+          return value
+            ? value.replace(/\b\w/g, (char) => char.toUpperCase())
+            : value;
+        },
       },
       price: {
         type: DataTypes.FLOAT,
@@ -43,7 +68,7 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   Book.associate = (models) => {
-    Book.belongsTo(models.user, { foreignKey: "userId" , onDelete: 'CASCADE'});
+    Book.belongsTo(models.user, { foreignKey: "userId", onDelete: "CASCADE" });
   };
 
   return Book;

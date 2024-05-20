@@ -1,6 +1,6 @@
 const db = require("../conn");
 const message = require("../config/message");
-const { where, Op } = require("sequelize");
+const { Op } = require("sequelize");
 
 const { book, error } = message;
 const Book = db.book;
@@ -51,30 +51,112 @@ const add = async (req, res) => {
 const getAll = async (req, res) => {
   try {
     const { id } = req.user;
-    // const { page, limit } = req.query;
-    // const pageCount = Number(page) || 1;
-    // const limitDoc = Number(limit) || 5;
-    // const totalBooks = await Book.count({ where: { userId: id } });
-    // const maxPage =
-    //   totalBooks <= limitDoc ? 1 : Math.ceil(totalBooks / limitDoc);
+    let whereCondition = { userId: id };
 
-    // if (pageCount > maxPage) {
-    //   return res
-    //     .status(400)
-    //     .json({ message: `There are only ${maxPage} page.` });
-    // }
+    const {
+      bookId,
+      bookName,
+      authorName,
+      pages_gt,
+      pages_lt,
+      pages_ne,
+      pages_eq,
+      rel_year1,
+      rel_year2,
+      order,
+      sort,
+    } = req.query;
 
-    // const skip = (pageCount - 1) * limitDoc;
+    let orderType = "ASC";
+    let orderCondition = [];
+    if (order) {
+      if (order === "true") {
+        orderType = "ASC";
+      }
+      if (order === "false") {
+        orderType = "DESC";
+      }
+    }
+
+    if (sort) {
+       if (sort == "name") {
+        orderCondition = ["name", orderType];
+      } else if (sort == "author") {
+        orderCondition = ["author", orderType];
+      } else if (sort == "relYear") {
+        orderCondition = ["released_year", orderType];
+      } else if (sort == "price") {
+        orderCondition = ["price", orderType];
+      } else if (sort == "noOfPage") {
+        orderCondition = ["no_of_pages", orderType];
+      } else if (sort == "category") {
+        orderCondition = ["category", orderType];
+      }
+    } else {
+      orderCondition = ["createdAt", "ASC"];
+    }
+    if (bookId && bookId.trim()) {
+      whereCondition.id = bookId;
+    } else if (bookName && bookName.trim() && !authorName) {
+      whereCondition.name = bookName;
+    } else if (bookName && bookName.trim() && authorName && authorName.trim()) {
+      whereCondition.name = bookName;
+      whereCondition.author = authorName;
+    } else if (pages_gt && !pages_lt) {
+      whereCondition.no_of_pages = { [Op.gt]: parseInt(pages_gt) };
+    } else if (pages_gt && pages_lt && !pages_ne) {
+      whereCondition.no_of_pages = {
+        [Op.and]: [
+          { [Op.gt]: parseInt(pages_gt) },
+          { [Op.lt]: parseInt(pages_lt) },
+        ],
+      };
+    } else if (pages_gt && pages_lt && pages_ne) {
+      whereCondition.no_of_pages = {
+        [Op.gt]: parseInt(pages_gt),
+        [Op.lt]: parseInt(pages_lt),
+        [Op.ne]: parseInt(pages_ne),
+      };
+    } else if (pages_eq) {
+      whereCondition.no_of_pages = { [Op.eq]: parseInt(pages_eq) };
+    } else if (rel_year1 && rel_year2) {
+      whereCondition.released_year = {
+        [Op.or]: [
+          { [Op.eq]: parseInt(rel_year1) },
+          { [Op.eq]: parseInt(rel_year2) },
+        ],
+      };
+    } else {
+      whereCondition;
+    }
+
+    const { page, limit } = req.query;
+    const pageCount = Number(page) || 1;
+    const limitDoc = Number(limit) || 5;
+    const totalBooks = await Book.count({ where: whereCondition });
+    const maxPage =
+      totalBooks <= limitDoc ? 1 : Math.ceil(totalBooks / limitDoc);
+
+    if (pageCount > maxPage) {
+      return res
+        .status(400)
+        .json({ message: `There are only ${maxPage} page.` });
+    }
+
+    const skip = (pageCount - 1) * limitDoc;
     const bookList = await Book.findAll({
       include: [{ model: User, attributes: ["id", "name", "email"] }],
-      where: { userId: id },
-      // offset: skip,
-      // limit: limitDoc,
+      where: whereCondition,
+      order:[orderCondition],
+      offset: skip,
+      limit: limitDoc,
     });
-    if (!bookList) {
+    if (bookList.length === 0) {
       return res.status(404).json({ message: book.bookNotFound });
     }
-    return res.status(200).json({ AllBook: bookList });
+    return res
+      .status(200)
+      .json({ AllBook: bookList, totalBooks,message: "All Books Fetched Successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
@@ -102,17 +184,14 @@ const getOne = async (req, res) => {
     const { id } = req.user;
     const { bookName, authorName } = req.query;
 
-    const whereCondition = {userId:id};
+    const whereCondition = { userId: id };
 
     if (bookName && !authorName) {
       whereCondition.name = { [Op.like]: `%${bookName}%` };
-    }
-    else if (bookName && authorName) {
+    } else if (bookName && authorName) {
       whereCondition.name = { [Op.like]: `%${bookName}%` };
       whereCondition.author = { [Op.like]: `%${authorName}%` };
     }
-
-    console.log(whereCondition);
     const bookDetail = await Book.findOne({
       where: whereCondition,
     });
@@ -165,9 +244,27 @@ const update = async (req, res) => {
 const deletee = async (req, res) => {
   try {
     const { id } = req.user;
-    const _id = req.params.id;
+    // const _id = req.params.id;
 
-    const deleteBook = await Book.destroy({ where: { userId: id, id: _id } });
+    console.log(req.query);
+
+    const { bookId, bookName, bookDesc, authorName, category } = req.query;
+
+    let whereCondition = { userId: id };
+
+    if (bookName && bookName.trim()) {
+      whereCondition.name = { [Op.like]: `%${bookName}%` };
+    } else if (bookDesc && authorName) {
+      whereCondition.description = { [Op.like]: `%${bookDesc}%` };
+      whereCondition.author = { [Op.like]: `%${authorName}%` };
+    } else if (bookName && category) {
+      whereCondition.name = { [Op.like]: `%${bookName}%` };
+      whereCondition.category = { [Op.like]: `%${category}%` };
+    } else {
+      whereCondition.id = bookId;
+    }
+    console.log(whereCondition);
+    const deleteBook = await Book.destroy({ where: whereCondition });
     if (!deleteBook) {
       return res.status(404).json({ message: book.bookNotFound });
     }

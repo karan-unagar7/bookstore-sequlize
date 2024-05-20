@@ -8,6 +8,8 @@ router.get('/getall' ,getAll)
 // router.get('/getone/:id' ,getOne)
 router.get('/getone' ,getOne)
 router.put('/update/:id' ,update)
-router.delete('/delete/:id' ,deletee)
+// router.delete('/delete/:id' ,deletee)
+router.delete('/delete' ,deletee)
+
 
 module.exports = router;

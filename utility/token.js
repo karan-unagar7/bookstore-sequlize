@@ -2,7 +2,9 @@ const jwt = require('jsonwebtoken');
 const {SECRET_KEY} = require('../config/config')
 
 const generateToken = (payload)=>{
-    return jwt.sign(payload , SECRET_KEY)
+    return jwt.sign(payload , SECRET_KEY , {
+        expiresIn:'5 h'
+    })
 }
 
 const verifyToken = (token)=>{
